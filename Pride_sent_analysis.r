@@ -6,10 +6,10 @@ tweet1 <- tweet
 tweet1 <- as.data.frame(tweet1)
 tweet2 <- as.data.frame(tweet2)
 
-#TWEET DAL 24 GIUGNO AL 10 LUGLIO
+#TWEETS FROM 24TH JUNE TO 10TH JULY
 tweetcompleto <- rbind(tweet1, tweet2)
 
-#CAMPIONE DI 10000 TWEET
+#Sample of 10k tweets
 set.seed(12345)
 tweetcampione <- sample(tweetcompleto$text, 10000, replace = F)
 
@@ -19,18 +19,18 @@ library(igraph)
 library(ggraph)
 library(ggplot2)
 
-#PULIZIA INIZIALE (URL, EMOTICON, HASHTAG, NON ASCII)
+#Data-cleaning (URL, EMOTICON, HASHTAG, NON ASCII)
 tweetcampione <- replace_url(tweetcampione, mgsub = "")
 tweetcampione <- replace_emoticon(tweetcampione, mgsub="")
 tweetcampione <- replace_hash(tweetcampione,mgsub="")
 tweetcampione <- replace_non_ascii(tweetcampione, mgsub="")
 tweetcampione
 
-#CREAZIONE CORPUS
+#CORPUS creation
 corpus <- VCorpus(VectorSource(tweetcampione)) 
 summary(corpus)
 
-#PULIZIA CORPUS
+#Pre-processing
 corpus <- tm_map(corpus, content_transformer(tolower))
 
 corpus <- tm_map(corpus, removeNumbers)
@@ -77,9 +77,9 @@ df_ordinato <- data.frame(word = names(v),freq=v)
 df_ordinato2 <- data.frame(word = names(v2),freq=v2)
 
 findAssocs(termdoc_nospar, terms = findFreqTerms(termdoc_nospar, lowfreq = 500), corlimit = 0.10)
-#lgbtq e member
+#lgbtq and member
 
-#WordCloud con tutte le parole
+#WordCloud 
 library("wordcloud")
 library("RColorBrewer")
 par(bg="midnightblue") 
@@ -88,14 +88,11 @@ wordcloud(df_ordinato$word[1:192], df_ordinato$freq[1:192], col=rainbow(length(d
 title(main = "Word cloud #Pride2020", font.main = 1, col.main= "gold", cex.main = 2)
 dev.off()
 
-#Sentiment Analysis con tutte le parole
+
 library('syuzhet')
 
-#Trasforma il corpus in un dataframe
+# corpus into dataframe
 dfcorpus <- data.frame(text=unlist(sapply(corpus,'[', "content")), stringsAsFactors=F)
-#estrae dal corpus il content. '[' è una funzione che significa ESTRAI
-#sapply ti restituisce una lista della stessa lunghezza di x (corpus)
-#unlist perchè non vogliamo una lista, ma un vettore
 dfcorpus2<- data.frame(text=unlist(sapply(corpus2, '[', "content")), stringsAsFactors = F)
 
 sentiment <- get_nrc_sentiment(dfcorpus$text, language = "english")
@@ -117,14 +114,14 @@ qplot(sentiment, data=posneg, weight=count, geom = "bar", fill=sentiment)+ggtitl
 
 
 
-#Grafo Termini con 184 parole -tolte "pride", "happi", "celebr", "day", "year", "month", "last", "via"-
+#Grapf of words with 184 words -except "pride", "happi", "celebr", "day", "year", "month", "last", "via"-
 library(igraph)
 library(ggraph)
 library(ggplot2)
 
 par(mar=c(1, 2, 1, 2)+0.1)
 
-matriceadiacenza <- termdoc_matrix2 %*% t(termdoc_matrix2)
+matriceadiacenza <- termdoc_matrix2 %*% t(termdoc_matrix2)#ADIACENCY MATRIX
 grafotermini <- graph_from_adjacency_matrix(matriceadiacenza, "undirected", diag = F, weighted = T)
 
 E(grafotermini)$width <- (E(grafotermini)$weight)*0.1
@@ -135,7 +132,7 @@ E(grafotermini)$weight[14151]
 
 Matches <- E(grafotermini)$weight
 
-#PLOT CON GGPLOT
+#PLOTS WITH GGPLOT
 ggraph(grafotermini, layout = "fr") +
   geom_edge_link(aes(edge_width = Matches, edge_alpha = Matches), edge_colour = "springgreen4") +
   geom_node_point(size=(sqrt(graph.strength(grafotermini)))*0.1, color="gold") +
@@ -256,7 +253,7 @@ ggraph(grafo2, layout = "fr") +
 degree(grafo2)
 max_cliques(grafo2)
 
-#grafo3 tutti collegati
+
 grafo3 <- grafotermini - vertices(c(member1, member2, member4, member5, member6))
 Matches3 <-E(grafo3)$weight
 ggraph(grafo3, layout = "fr") +
@@ -302,7 +299,7 @@ degree(grafo6)
 max_cliques(grafo6)
 
 
-#BIGRAMMI E TRIGRAMMI
+#BIGRAMS AND TRIGRAMS
 
 library(udpipe)
 library(lattice)
